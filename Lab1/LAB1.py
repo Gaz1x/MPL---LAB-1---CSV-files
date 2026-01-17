@@ -51,13 +51,11 @@ def main():
 
         with Pool(max_workers=5) as workPool:
             results = list(workPool.map(parseFile,[f"data{i+1}.csv" for i in range(5)]))
-
             for result in results:
                 print("-"*20 + "\n" + result["fileName"] + "\n" + "-"*20)
                 for letter in LETTERS_MAS:
                     MEDIAN_MAS[letter].append(round(result["median"][letter],2))
                     print(f'{letter:<2} | {round(result["median"][letter],2):<5}  | {round(result["deviation"][letter],2):<5}')
-
 
             #Нахождение медианы медиан и стандартного отклонения медиан
             print('-'*20 + '\nРЕЗУЛЬТАТ ПО ВСЕМ ФАЙЛАМ\n' + 20*'-')
