@@ -56,5 +56,4 @@ void analyzeNumberProperties(int n) {
     if (divisorCount == 1 && n > 1) {
         cout << n << " is also a PRIME number." << endl;
     }
-    cout << "Analysis complete for " << n << "." << endl;
 }

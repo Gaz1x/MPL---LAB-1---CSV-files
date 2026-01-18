@@ -11,7 +11,7 @@ def analyzeStringBalance(text, len):
         c = text = [0] * i
         print("Char [", i, "] = '", c, "'")
         if c >= 'A' and c <= 'Z':
-            c = chr(ord(c) - ord('A') + ord('a'))
+            c = chr(ord('A') + 'a')
         if c >= 'a' and c <= 'z':
             if c == 'a' or c == 'e' or c == 'i' or c == 'o' or c == 'u':
                 vowelCount += 1

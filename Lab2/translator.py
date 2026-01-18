@@ -209,39 +209,65 @@ class CppToPython:
         self.add_line(f"{indent}{lhs} = {rhs}")
 
     def convert_char_index(self, index):
-        if "'" not in index:
-            return index
+        index = index.strip()
 
-        result = index
-        import re
-        result = re.sub(r"'(.)'", r"ord('\1')", result)
+        if " - '" in index:
+            parts = index.split(" - '", 1)
+            var_part = parts[0].strip()
+            rest = parts[1]
+            if "'" in rest:
+                char_part = rest.split("'", 1)[0]
+                if len(var_part) == 1 and var_part.isalpha():
+                    return f"ord({var_part}) - ord('{char_part}')"
+                return f"{var_part} - ord('{char_part}')"
 
-        tokens = result.split()
-        new_tokens = []
-        for i, token in enumerate(tokens):
-            if len(token) == 1 and token.isalpha() and token not in ['a', 'e', 'i', 'o', 'u']:
-                new_tokens.append(f"ord({token})")
-            elif token in ['-', '+', '*', '/']:
-                new_tokens.append(token)
-            else:
-                new_tokens.append(token)
+        if "'a'" in index or "'A'" in index:
+            result = index
+            i = 0
+            while i < len(result):
+                if result[i] == "'" and i + 2 < len(result) and result[i+2] == "'":
+                    char = result[i+1]
+                    replacement = f"ord('{char}')"
+                    result = result[:i] + replacement + result[i+3:]
+                    i += len(replacement)
+                else:
+                    i += 1
+            return result
 
-        result = index
-        char_matches = re.findall(r"'(.)'", result)
-        for char in char_matches:
-            result = result.replace(f"'{char}'", f"ord('{char}')")
-
-        result = re.sub(r'\b([a-z])\s*-\s*ord', r'ord(\1) - ord', result)
-        result = re.sub(r'\b([a-z])\s*\+\s*ord', r'ord(\1) + ord', result)
-
-        return result
+        return index
 
     def convert_char_expression(self, expr):
-        import re
-        result = re.sub(r"'(.)'", r"ord('\1')", expr)
-        result = re.sub(r'\b([a-z])\s*([-+])\s*ord', r'ord(\1) \2 ord', result)
+        expr = expr.strip()
+        if "(char)" in expr:
+            expr = expr.replace("(char)", "").strip()
+        if expr.startswith("(") and expr.endswith(")"):
+            expr = expr[1:-1].strip()
 
-        return f"chr({result})"
+        if "'a' +" in expr or "'a'+" in expr:
+            if "'a' +" in expr:
+                parts = expr.split("'a' +", 1)
+            else:
+                parts = expr.split("'a'+", 1)
+            var_part = parts[1].strip()
+            return f"chr(ord('a') + {var_part})"
+
+        if "'A' +" in expr or "'A'+" in expr:
+            if "'A' +" in expr:
+                parts = expr.split("'A' +", 1)
+            else:
+                parts = expr.split("'A'+", 1)
+            var_part = parts[1].strip()
+            return f"chr(ord('A') + {var_part})"
+
+        if " + '0'" in expr or "+'0'" in expr:
+            if " + '0'" in expr:
+                parts = expr.split(" + '0'", 1)
+            else:
+                parts = expr.split("+'0'", 1)
+            var_part = parts[0].strip()
+            return f"chr(ord('0') + {var_part})"
+
+        return f"chr({expr})"
 
     def translate_cout(self, line, temp_to_write, indent):
         line = line.replace("endl", "").strip()
@@ -394,7 +420,6 @@ class CppToPython:
         condition = condition.replace("!", " not ")
         condition = condition.replace("true", "True").replace("false", "False")
 
-        # Очистка лишних пробелов
         condition = " ".join(condition.split())
 
         return condition

@@ -43,4 +43,3 @@ def analyzeNumberProperties(n):
         print(n, " is a DEFICIENT number.")
     if divisorCount == 1 and n > 1:
         print(n, " is also a PRIME number.")
-    # UNHANDLED FOR: cout << "Analysis complete for " << n << "." << endl;
